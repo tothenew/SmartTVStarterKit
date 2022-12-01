@@ -1,0 +1,131 @@
+require("dotenv").config();
+const path = require("path");
+const webpack = require("webpack");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
+const process = require("process");
+const fs = require("fs");
+const copyContent = require("./dependencies");
+const platform = process.argv[process.argv.length - 1] || "web";
+const copyScript = copyContent(platform);
+module.exports = {
+  entry: ["./src/index.js"],
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        use: {
+          loader: "babel-loader",
+          options: {
+            presets: ["@babel/preset-env", "@babel/preset-react"],
+            plugins: [["@babel/transform-runtime"]],
+          },
+        },
+        exclude: /node_modules/,
+      },
+      {
+        test: /\.jsx?$/,
+        exclude: /node_modules/,
+        //loader: require.resolve('babel-loader')
+        use: {
+          loader: "babel-loader",
+          options: {
+            presets: ["@babel/preset-env"],
+            plugins: [["@babel/plugin-syntax-jsx"]],
+          },
+        },
+      },
+      {
+        test: /\.css$/,
+        use: [MiniCssExtractPlugin.loader, "css-loader"],
+      },
+      {
+        test: /\.scss$/i,
+        exclude: /node_modules/,
+        use: [
+          {
+            loader: MiniCssExtractPlugin.loader,
+          },
+          // Translates CSS into CommonJS
+          "css-loader",
+          // Compiles Sass to CSS
+          "sass-loader",
+        ],
+      },
+      {
+        test: /\.(.svg|.png|.jpg|.gif|.webp|.ttf)$/,
+        use: {
+          loader: "file-loader",
+          options: {
+            name: "[name].[ext]",
+            outputPath: "assets",
+          },
+        },
+        exclude: /node_modules/,
+      },
+      {
+        test: /\.(png|jpg|gif|svg|webp|ttf)$/i,
+        use: [
+          {
+            loader: "url-loader",
+          },
+        ],
+      },
+    ],
+  },
+  plugins: [
+    new MiniCssExtractPlugin({ filename: "build.css" }),
+    new CopyWebpackPlugin(
+      {
+        patterns: [
+          {
+            context: "./src/",
+            from: "./assets/**/*",
+            to: path.resolve(__dirname, "./dist/"),
+            force: true,
+          },
+          {
+            context: "./src/",
+            from: "./font.css",
+            to: path.resolve(__dirname, "./dist/"),
+            force: true,
+          },
+          {
+            context: "./src/",
+            from: "./locales/**.*",
+            to: path.resolve(__dirname, "./dist/"),
+            force: true,
+          },
+          ...copyScript,
+        ],
+      },
+      { copyUnmodified: true }
+    ),
+    {
+      apply: (compiler) => {
+        compiler.hooks.afterEmit.tap("AfterEmitPlugin", (compilation) => {
+          modifyHtml();
+        });
+      },
+    },
+  ],
+};
+
+function modifyHtml() {
+  const myConfig = require("./source-mapper");
+  let envConfig = myConfig[platform];
+  envConfig = envConfig.join("\n");
+  console.log(platform, envConfig);
+  fs.readFile("./dist/index.html", "utf8", function (err, data) {
+    if (err) {
+      return console.log(err);
+    }
+    let result = data.replace(
+      /<!-- platform -->([\s\S]*?)<!-- platform end -->/gim,
+      "<!-- platform -->\n" + envConfig + "\n<!-- platform end -->"
+    );
+    fs.writeFile("./dist/index.html", result, "utf8", function (err) {
+      if (err) return console.log(err);
+    });
+  });
+}

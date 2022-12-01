@@ -1,0 +1,10 @@
+{
+  "id": "com.app_name.app",
+  "version": "0.0.1",
+  "vendor": "app_name",
+  "type": "web",
+  "main": "index.html",
+  "title": "app_name",
+  "icon": "icon.png",
+  "largeIcon": "largeIcon.png"
+}

@@ -1,0 +1,56 @@
+const getPlatform = (platform) => {
+  const platformData = {
+    tizen: [
+      {
+        from: `./src/platforms/${platform}/.settings`,
+        to: "./.settings",
+      },
+      {
+        from: `src/platforms/${platform}/.project`,
+        to: "./",
+      },
+      {
+        from: `./src/platforms/${platform}/.tproject`,
+        to: "./",
+      },
+      {
+        from: `./src/platforms/${platform}/config.xml`,
+        to: "./",
+      },
+      {
+        from: `./src/platforms/${platform}/icon.png`,
+        to: "./",
+      }
+    ],
+    lg: [
+      {
+        from: `src/platforms/${platform}/.settings`,
+        to: "./.settings",
+      },
+      {
+        from: `src/platforms/${platform}/.project`,
+        to: "./",
+      },
+      {
+        from: `src/platforms/${platform}/appinfo.json`,
+        to: "./appinfo.json",
+      },
+      {
+        from: `src/platforms/${platform}/webOS.js`,
+        to: "./webOS.js",
+      },
+      {
+        from: `src/platforms/${platform}/icon.png`,
+        to: "./icon.png",
+      },
+      {
+        from: `src/platforms/${platform}/largeIcon.png`,
+        to: "./largeIcon.png",
+      }
+    ],
+    web: []
+  };
+  return platformData[platform];
+};
+
+module.exports = getPlatform;
